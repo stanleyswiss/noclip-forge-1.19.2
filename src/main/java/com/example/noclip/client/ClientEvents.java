@@ -32,11 +32,12 @@ public final class ClientEvents {
             mc.player.fallDistance = 0.0f;
             mc.player.setOnGround(false);
             
-            // Override movement to ignore collisions
+            // Force position updates to bypass collision
             var motion = mc.player.getDeltaMovement();
-            if (motion.lengthSqr() > 0) {
-                mc.player.move(net.minecraft.world.entity.MoverType.SELF, motion);
-            }
+            var pos = mc.player.position();
+            
+            // Use direct position setting to bypass collision
+            mc.player.setPos(pos.x + motion.x, pos.y + motion.y, pos.z + motion.z);
         } else {
             mc.player.noPhysics = false;
         }
