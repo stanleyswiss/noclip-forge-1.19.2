@@ -26,21 +26,34 @@ public final class ServerEvents {
             e.player.fallDistance = 0.0f;
             e.player.setOnGround(false);
             
-            // Spectator-like movement
-            Vec3 motion = e.player.getDeltaMovement();
+            // Make bounding box extremely small first
             Vec3 pos = e.player.position();
+            e.player.setBoundingBox(AABB.ofSize(pos, 0.001, 0.001, 0.001));
             
-            // Direct position update bypassing collision
-            double newX = pos.x + motion.x;
-            double newY = pos.y + motion.y;
-            double newZ = pos.z + motion.z;
+            // Force movement through blocks using multiple approaches
+            Vec3 motion = e.player.getDeltaMovement();
             
-            // Set position directly without collision checks
-            e.player.setPosRaw(newX, newY, newZ);
-            e.player.setBoundingBox(AABB.ofSize(new Vec3(newX, newY, newZ), 0.1, 0.1, 0.1));
-            
-            // Keep motion for smooth movement
-            e.player.setDeltaMovement(motion);
+            if (motion.lengthSqr() > 0) {
+                // Calculate new position
+                double newX = pos.x + motion.x;
+                double newY = pos.y + motion.y; 
+                double newZ = pos.z + motion.z;
+                
+                // Multiple bypass attempts for stubborn blocks
+                
+                // Method 1: Direct position setting
+                e.player.setPosRaw(newX, newY, newZ);
+                
+                // Method 2: Teleport to force position
+                e.player.teleportTo(newX, newY, newZ);
+                
+                // Method 3: Set position and update bounding box
+                e.player.setPos(newX, newY, newZ);
+                e.player.setBoundingBox(AABB.ofSize(new Vec3(newX, newY, newZ), 0.001, 0.001, 0.001));
+                
+                // Keep motion for smooth movement
+                e.player.setDeltaMovement(motion);
+            }
 
             var ab = e.player.getAbilities();
             if (!tag.getBoolean("noclip_saved")) {
