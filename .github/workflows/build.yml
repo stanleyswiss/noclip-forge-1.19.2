@@ -21,16 +21,22 @@ jobs:
       - name: Download Forge MDK 1.19.2 (43.5.0)
         run: |
           set -eux
-          MDK_URL="https://files.minecraftforge.net/net/minecraftforge/forge/index_1.19.2.html"
-          # Prefer a specific version to avoid breakage; 43.5.0 is the recommended 1.19.2 line.
-          curl -L -o forge-mdk.zip "https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.5.0/forge-1.19.2-43.5.0-mdk.zip"
-
+          curl -L -o forge-mdk.zip https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.5.0/forge-1.19.2-43.5.0-mdk.zip
           mkdir mdk && unzip -q forge-mdk.zip -d mdk
 
+      # 🔥 Remove MDK's examplemod so it never sneaks in
+      - name: Strip MDK examplemod
+        run: |
+          rm -rf mdk/src/main/java/com/example/examplemod || true
+          rm -f  mdk/src/main/resources/META-INF/mods.toml || true
+          # Set final jar name to noclip (MDK defaults to examplemod)
+          sed -i 's/archivesBaseName = "examplemod"/archivesBaseName = "noclip"/' mdk/build.gradle || true
+
+      # Overlay our sources/resources
       - name: Overlay sources
         run: |
           rsync -a src/ mdk/src/
-          rsync -a src/ mdk/src/  # twice in case src exists only partially
+          rsync -a src/ mdk/src/   # idempotent second pass
           rsync -a --exclude=.git --exclude=.github ./ mdk/
 
       - name: Build with Gradle Wrapper
@@ -43,6 +49,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: noclip-jars
-          path: |
-            mdk/build/libs/*.jar
+          path: mdk/build/libs/*.jar
           if-no-files-found: error
