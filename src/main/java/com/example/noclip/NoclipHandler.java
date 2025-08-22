@@ -32,7 +32,6 @@ public class NoclipHandler {
         
         // Bypass collision by setting collision shape to empty
         player.noPhysics = true;
-        player.pushthrough = 1.0f;
         
         // Allow movement through blocks by overriding position
         Vec3 motion = player.getDeltaMovement();

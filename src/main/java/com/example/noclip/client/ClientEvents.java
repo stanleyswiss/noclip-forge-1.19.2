@@ -31,7 +31,6 @@ public final class ClientEvents {
             mc.player.noPhysics = true;
             mc.player.fallDistance = 0.0f;
             mc.player.setOnGround(false);
-            mc.player.pushthrough = 1.0f;
             
             // Override movement to ignore collisions
             var motion = mc.player.getDeltaMovement();
@@ -40,7 +39,6 @@ public final class ClientEvents {
             }
         } else {
             mc.player.noPhysics = false;
-            mc.player.pushthrough = 0.0f;
         }
     }
 }

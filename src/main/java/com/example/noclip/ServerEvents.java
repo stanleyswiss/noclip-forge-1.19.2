@@ -26,9 +26,6 @@ public final class ServerEvents {
             e.player.fallDistance = 0.0f;
             e.player.setOnGround(false);
             
-            // Force position through blocks by disabling push from blocks
-            e.player.pushthrough = 1.0f;
-            
             // Override collision detection
             e.player.setDeltaMovement(e.player.getDeltaMovement());
 
@@ -54,7 +51,6 @@ public final class ServerEvents {
                 tag.putBoolean("noclip_saved", false);
             }
             e.player.noPhysics = false;
-            e.player.pushthrough = 0.0f;
         }
     }
 }

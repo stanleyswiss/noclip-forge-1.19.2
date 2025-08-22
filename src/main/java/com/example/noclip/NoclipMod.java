@@ -9,6 +9,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 @Mod(NoclipMod.MODID)
 public final class NoclipMod {
     public static final String MODID = "noclip";
+    @SuppressWarnings("removal")
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(MODID, "main"),
             () -> "1", "1"::equals, "1"::equals);
