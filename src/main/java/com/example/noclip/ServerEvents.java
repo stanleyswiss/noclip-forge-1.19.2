@@ -15,6 +15,7 @@ public final class ServerEvents {
         boolean enabled = tag.getBoolean("noclip_enabled");
 
         if (enabled) {
+            // Authoritative server-side noclip so you truly pass through solids in single-player
             e.player.noPhysics = true;
             e.player.fallDistance = 0.0f;
             e.player.setOnGround(false);
@@ -29,6 +30,7 @@ public final class ServerEvents {
             ab.flying = true;
             e.player.onUpdateAbilities();
         } else {
+            // Restore abilities and physics
             if (tag.getBoolean("noclip_saved")) {
                 var ab = e.player.getAbilities();
                 ab.mayfly = tag.getBoolean("noclip_prev_mayfly");
