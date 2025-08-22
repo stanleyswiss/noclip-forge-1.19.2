@@ -17,7 +17,7 @@ public record ToggleNoclipC2S(boolean enable) {
             if (p != null) {
                 p.getPersistentData().putBoolean("noclip_enabled", msg.enable());
                 if (!msg.enable()) {
-                    p.setNoPhysics(false);
+                    p.noPhysics = false;
                 }
             }
         });

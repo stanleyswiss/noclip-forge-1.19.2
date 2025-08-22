@@ -9,13 +9,13 @@ public final class ServerEvents {
 
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent e) {
-        if (e.phase != TickEvent.Phase.END || e.player.level().isClientSide) return;
+        if (e.phase != TickEvent.Phase.END || e.player.level.isClientSide) return;
 
         var tag = e.player.getPersistentData();
         boolean enabled = tag.getBoolean("noclip_enabled");
 
         if (enabled) {
-            e.player.setNoPhysics(true);
+            e.player.noPhysics = true;
             e.player.fallDistance = 0.0f;
             e.player.setOnGround(false);
 
@@ -36,7 +36,7 @@ public final class ServerEvents {
                 e.player.onUpdateAbilities();
                 tag.putBoolean("noclip_saved", false);
             }
-            e.player.setNoPhysics(false);
+            e.player.noPhysics = false;
         }
     }
 }
