@@ -31,8 +31,16 @@ public final class ClientEvents {
             mc.player.noPhysics = true;
             mc.player.fallDistance = 0.0f;
             mc.player.setOnGround(false);
+            mc.player.pushthrough = 1.0f;
+            
+            // Override movement to ignore collisions
+            var motion = mc.player.getDeltaMovement();
+            if (motion.lengthSqr() > 0) {
+                mc.player.move(net.minecraft.world.entity.MoverType.SELF, motion);
+            }
         } else {
             mc.player.noPhysics = false;
+            mc.player.pushthrough = 0.0f;
         }
     }
 }
