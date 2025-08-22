@@ -1,7 +1,8 @@
 package com.example.noclip;
 
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -25,24 +26,24 @@ public final class ServerEvents {
             e.player.fallDistance = 0.0f;
             e.player.setOnGround(false);
             
-            // Make player dimension tiny to avoid collision
-            if (!tag.getBoolean("noclip_dims_saved")) {
-                tag.putFloat("noclip_prev_width", e.player.dimensions.width);
-                tag.putFloat("noclip_prev_height", e.player.dimensions.height);
-                tag.putBoolean("noclip_dims_saved", true);
-                
-                // Set to very small dimensions
-                e.player.dimensions = EntityDimensions.fixed(0.01f, 0.01f);
-                e.player.refreshDimensions();
-            }
-            
-            // Force movement without collision checks
+            // Spectator-like movement
             Vec3 motion = e.player.getDeltaMovement();
-            if (motion.lengthSqr() > 0) {
-                Vec3 pos = e.player.position();
-                e.player.teleportTo(pos.x + motion.x, pos.y + motion.y, pos.z + motion.z);
-                e.player.setDeltaMovement(motion);
-            }
+            Vec3 pos = e.player.position();
+            
+            // Direct position update bypassing collision
+            double newX = pos.x + motion.x;
+            double newY = pos.y + motion.y;
+            double newZ = pos.z + motion.z;
+            
+            // Set position directly without collision checks
+            e.player.setPosRaw(newX, newY, newZ);
+            e.player.setBoundingBox(AABB.ofSize(new Vec3(newX, newY, newZ), 0.1, 0.1, 0.1));
+            
+            // Keep motion for smooth movement
+            e.player.setDeltaMovement(motion);
+            
+            // Clear block position to prevent collision checks
+            e.player.blockPosition = new BlockPos(newX, newY, newZ);
 
             var ab = e.player.getAbilities();
             if (!tag.getBoolean("noclip_saved")) {
@@ -66,14 +67,9 @@ public final class ServerEvents {
                 tag.putBoolean("noclip_saved", false);
             }
             
-            // Restore dimensions
-            if (tag.getBoolean("noclip_dims_saved")) {
-                float width = tag.getFloat("noclip_prev_width");
-                float height = tag.getFloat("noclip_prev_height");
-                e.player.dimensions = EntityDimensions.fixed(width, height);
-                e.player.refreshDimensions();
-                tag.putBoolean("noclip_dims_saved", false);
-            }
+            // Restore normal bounding box
+            Vec3 pos = e.player.position();
+            e.player.setBoundingBox(AABB.ofSize(pos, 0.6, 1.8, 0.6));
             
             e.player.noPhysics = false;
         }
