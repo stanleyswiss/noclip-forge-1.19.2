@@ -41,9 +41,6 @@ public final class ServerEvents {
             
             // Keep motion for smooth movement
             e.player.setDeltaMovement(motion);
-            
-            // Clear block position to prevent collision checks
-            e.player.blockPosition = new BlockPos(newX, newY, newZ);
 
             var ab = e.player.getAbilities();
             if (!tag.getBoolean("noclip_saved")) {
