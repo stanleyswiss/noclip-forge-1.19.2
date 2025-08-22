@@ -1,0 +1,48 @@
+name: Build Noclip (Forge 1.19.2)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "**" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Download Forge MDK 1.19.2 (43.5.0)
+        run: |
+          set -eux
+          MDK_URL="https://files.minecraftforge.net/net/minecraftforge/forge/index_1.19.2.html"
+          # Prefer a specific version to avoid breakage; 43.5.0 is the recommended 1.19.2 line.
+          curl -L -o forge-mdk.zip "https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.5.0/forge-1.19.2-43.5.0-mdk.zip"
+
+          mkdir mdk && unzip -q forge-mdk.zip -d mdk
+
+      - name: Overlay sources
+        run: |
+          rsync -a src/ mdk/src/
+          rsync -a src/ mdk/src/  # twice in case src exists only partially
+          rsync -a --exclude=.git --exclude=.github ./ mdk/
+
+      - name: Build with Gradle Wrapper
+        working-directory: mdk
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: noclip-jars
+          path: |
+            mdk/build/libs/*.jar
+          if-no-files-found: error
