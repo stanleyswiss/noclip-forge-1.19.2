@@ -32,23 +32,9 @@ public final class ClientEvents {
             mc.player.fallDistance = 0.0f;
             mc.player.setOnGround(false);
             
-            // Make client-side bounding box tiny
+            // Keep ultra-tiny bounding box for visual consistency
             var pos = mc.player.position();
-            mc.player.setBoundingBox(net.minecraft.world.phys.AABB.ofSize(pos, 0.001, 0.001, 0.001));
-            
-            // Force position updates to bypass collision
-            var motion = mc.player.getDeltaMovement();
-            
-            if (motion.lengthSqr() > 0) {
-                double newX = pos.x + motion.x;
-                double newY = pos.y + motion.y;
-                double newZ = pos.z + motion.z;
-                
-                // Multiple position setting methods for reliability
-                mc.player.setPosRaw(newX, newY, newZ);
-                mc.player.setPos(newX, newY, newZ);
-                mc.player.setBoundingBox(net.minecraft.world.phys.AABB.ofSize(new net.minecraft.world.phys.Vec3(newX, newY, newZ), 0.001, 0.001, 0.001));
-            }
+            mc.player.setBoundingBox(net.minecraft.world.phys.AABB.ofSize(pos, 0.0001, 0.0001, 0.0001));
         } else {
             mc.player.noPhysics = false;
             // Restore normal bounding box

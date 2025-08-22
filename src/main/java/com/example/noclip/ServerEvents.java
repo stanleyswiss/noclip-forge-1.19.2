@@ -21,38 +21,46 @@ public final class ServerEvents {
         NoclipHandler.setNoclipEnabled(e.player, enabled);
 
         if (enabled) {
-            // Set player to have no collision box
+            // Complete physics override
             e.player.noPhysics = true;
             e.player.fallDistance = 0.0f;
             e.player.setOnGround(false);
             
-            // Make bounding box extremely small first
-            Vec3 pos = e.player.position();
-            e.player.setBoundingBox(AABB.ofSize(pos, 0.001, 0.001, 0.001));
-            
-            // Force movement through blocks using multiple approaches
+            // Get input-based movement direction from abilities
             Vec3 motion = e.player.getDeltaMovement();
+            Vec3 pos = e.player.position();
             
+            // Normalize flying speed to prevent speed increase
+            double speed = 0.1; // Normal creative flying speed
             if (motion.lengthSqr() > 0) {
-                // Calculate new position
-                double newX = pos.x + motion.x;
-                double newY = pos.y + motion.y; 
-                double newZ = pos.z + motion.z;
+                motion = motion.normalize().scale(speed);
+            }
+            
+            // Completely bypass collision by teleporting in small steps
+            if (motion.lengthSqr() > 0) {
+                // Break movement into tiny steps to ensure we pass through any block
+                int steps = 10;
+                double stepX = motion.x / steps;
+                double stepY = motion.y / steps;
+                double stepZ = motion.z / steps;
                 
-                // Multiple bypass attempts for stubborn blocks
+                for (int i = 0; i < steps; i++) {
+                    double newX = pos.x + stepX * (i + 1);
+                    double newY = pos.y + stepY * (i + 1);
+                    double newZ = pos.z + stepZ * (i + 1);
+                    
+                    // Force teleport to each step position
+                    e.player.teleportTo(newX, newY, newZ);
+                }
                 
-                // Method 1: Direct position setting
-                e.player.setPosRaw(newX, newY, newZ);
+                // Set final position and ensure tiny bounding box
+                e.player.setBoundingBox(AABB.ofSize(e.player.position(), 0.0001, 0.0001, 0.0001));
                 
-                // Method 2: Teleport to force position
-                e.player.teleportTo(newX, newY, newZ);
-                
-                // Method 3: Set position and update bounding box
-                e.player.setPos(newX, newY, newZ);
-                e.player.setBoundingBox(AABB.ofSize(new Vec3(newX, newY, newZ), 0.001, 0.001, 0.001));
-                
-                // Keep motion for smooth movement
-                e.player.setDeltaMovement(motion);
+                // Clear motion to prevent additional movement
+                e.player.setDeltaMovement(Vec3.ZERO);
+            } else {
+                // Even when not moving, keep tiny bounding box
+                e.player.setBoundingBox(AABB.ofSize(pos, 0.0001, 0.0001, 0.0001));
             }
 
             var ab = e.player.getAbilities();
