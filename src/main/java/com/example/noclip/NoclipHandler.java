@@ -30,22 +30,16 @@ public class NoclipHandler {
     public static void handleNoclipMovement(Player player) {
         if (!isNoclipEnabled(player)) return;
         
-        // Bypass collision by setting collision shape to empty
+        // Ensure noPhysics is always true for noclip players
         player.noPhysics = true;
         
-        // Allow movement through blocks by overriding position
-        Vec3 motion = player.getDeltaMovement();
-        if (motion.lengthSqr() > 0) {
-            Vec3 newPos = player.position().add(motion);
-            
-            // Force position update without collision check
-            player.setPosRaw(newPos.x, newPos.y, newPos.z);
-            player.setDeltaMovement(motion);
-            
-            // Prevent getting stuck in blocks
-            player.fallDistance = 0;
-            player.setOnGround(false);
-        }
+        // Prevent any damage or physics effects
+        player.fallDistance = 0;
+        player.setOnGround(false);
+        player.setSwimming(false);
+        
+        // Clear any block-related states that might interfere
+        player.resetFallDistance();
     }
     
     public static VoxelShape getCollisionShape(Player player, BlockState state, Level level, BlockPos pos) {

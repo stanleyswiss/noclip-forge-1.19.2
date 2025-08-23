@@ -26,33 +26,22 @@ public final class ServerEvents {
             e.player.fallDistance = 0.0f;
             e.player.setOnGround(false);
             
-            // Make bounding box extremely small first
-            Vec3 pos = e.player.position();
-            e.player.setBoundingBox(AABB.ofSize(pos, 0.001, 0.001, 0.001));
+            // Keep normal bounding box size but ensure noPhysics handles collision
+            // This prevents the "3 blocks tall" visual bug
             
-            // Force movement through blocks using multiple approaches
+            // Force noPhysics to handle all collision bypass
+            e.player.noPhysics = true;
+            
+            // For more aggressive phasing, we can manually update position if needed
             Vec3 motion = e.player.getDeltaMovement();
-            
-            if (motion.lengthSqr() > 0) {
-                // Calculate new position
+            if (motion.lengthSqr() > 0.001) {  // Only if actually moving
+                Vec3 pos = e.player.position();
                 double newX = pos.x + motion.x;
-                double newY = pos.y + motion.y; 
+                double newY = pos.y + motion.y;
                 double newZ = pos.z + motion.z;
                 
-                // Multiple bypass attempts for stubborn blocks
-                
-                // Method 1: Direct position setting
-                e.player.setPosRaw(newX, newY, newZ);
-                
-                // Method 2: Teleport to force position
+                // Use teleportTo for forced movement through stubborn blocks
                 e.player.teleportTo(newX, newY, newZ);
-                
-                // Method 3: Set position and update bounding box
-                e.player.setPos(newX, newY, newZ);
-                e.player.setBoundingBox(AABB.ofSize(new Vec3(newX, newY, newZ), 0.001, 0.001, 0.001));
-                
-                // Keep motion for smooth movement
-                e.player.setDeltaMovement(motion);
             }
 
             var ab = e.player.getAbilities();
@@ -76,10 +65,6 @@ public final class ServerEvents {
                 e.player.onUpdateAbilities();
                 tag.putBoolean("noclip_saved", false);
             }
-            
-            // Restore normal bounding box
-            Vec3 pos = e.player.position();
-            e.player.setBoundingBox(AABB.ofSize(pos, 0.6, 1.8, 0.6));
             
             e.player.noPhysics = false;
         }
